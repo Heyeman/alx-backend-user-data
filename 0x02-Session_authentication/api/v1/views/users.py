@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ Module of Users views
 """
+import json
 from api.v1.views import app_views
 from flask import abort, jsonify, request
 from models.user import User
@@ -25,20 +26,11 @@ def view_one_user(user_id: str = None) -> str:
       - User object JSON represented
       - 404 if the User ID doesn't exist
     """
-
     if user_id is None:
         abort(404)
-
-    if user_id == "me" and request.current_user is None:
-        abort(404)
-
-    if user_id == "me" and request.current_user is not None:
-        return jsonify(request.current_user.to_json())
-
     user = User.get(user_id)
     if user is None:
         abort(404)
-
     return jsonify(user.to_json())
 
 
@@ -98,6 +90,17 @@ def create_user() -> str:
     return jsonify({'error': error_msg}), 400
 
 
+@app_views.route('/users/me', methods=['GET'], strict_slashes=False)
+def current_user() -> str:
+    """ Returns details of the current
+    logged in user
+    """
+    if request.current_user:
+        return jsonify(request.current_user.to_json())
+    else:
+        abort(404)
+
+
 @app_views.route('/users/<user_id>', methods=['PUT'], strict_slashes=False)
 def update_user(user_id: str = None) -> str:
     """ PUT /api/v1/users/:id
@@ -116,6 +119,11 @@ def update_user(user_id: str = None) -> str:
     user = User.get(user_id)
     if user is None:
         abort(404)
+    if user_id == current_user()['user_id']:
+        if request.current_user is None:
+            abort(404)
+        else:
+            return jsonify(user.to_json()), 200
     rj = None
     try:
         rj = request.get_json()

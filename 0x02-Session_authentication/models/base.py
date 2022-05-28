@@ -21,6 +21,7 @@ class Base():
         """
         s_class = str(self.__class__.__name__)
         if DATA.get(s_class) is None:
+            # DATA[s_class].values()
             DATA[s_class] = {}
 
         self.id = kwargs.get('id', str(uuid.uuid4()))
@@ -126,6 +127,7 @@ class Base():
         """ Search all objects with matching attributes
         """
         s_class = cls.__name__
+
         def _search(obj):
             if len(attributes) == 0:
                 return True
@@ -133,5 +135,5 @@ class Base():
                 if (getattr(obj, k) != v):
                     return False
             return True
-        
+
         return list(filter(_search, DATA[s_class].values()))

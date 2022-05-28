@@ -1,45 +1,43 @@
 #!/usr/bin/env python3
-"""Module defines the authorization class"""
-
-from flask import request
+""" Authentication Module
+"""
+from os import getenv
 from typing import List, TypeVar
+from flask import request
 
 
 class Auth:
-    """Authorization class"""
+    """ Authetication class
+    """
+
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
-        """Retricts app access to authorization first"""
-        if path is None or excluded_paths is None or not len(excluded_paths):
+        """ path require authentication
+        """
+        if not path:
+            return True
+        if not excluded_paths or len(excluded_paths) == 0:
             return True
         if path[-1] != '/':
             path += '/'
-        for i in excluded_paths:
-            if i.endswith('*'):
-                if path.startswith(i[:1]):
-                    return False
         if path in excluded_paths:
             return False
-        else:
-            return True
+        return True
 
     def authorization_header(self, request=None) -> str:
-        """Defines the authorization header"""
-        if request is None:
+        """ Autherization header
+        """
+        if not request:
             return None
-        if "Authorization" not in request.headers:
-            return None
-        else:
-            return request.headers["Authorization"]
+        return request.headers.get("Authorization", None)
 
     def current_user(self, request=None) -> TypeVar('User'):
-        """Returns current user"""
+        """ Current User
+        """
         return None
-    
+
     def session_cookie(self, request=None):
-        """ Return cookie value from request. """
+        """ get a session from cookie
+        """
         if request is None:
             return None
-
-        cookie_key = getenv('SESSION_NAME')
-
-        return request.cookies.get(cookie_key)
+        return request.cookies.get(getenv('SESSION_NAME'), None)
